@@ -18,7 +18,6 @@ const STATUS_COLORS = {
 const TIPO_LABEL = { admin: "Administrador", psicologo: "Psicólogo(a)", estagiario: "Estagiário(a)", recepcao: "Recepção" };
 const TIPO_COLORS = { admin: "#7C3AED", psicologo: "#4B6CB7", estagiario: "#D97706", recepcao: "#0891B2" };
 
-// ── SHARED COMPONENTS ────────────────────────────────────────────────────────
 const Badge = ({ status }) => {
   const c = STATUS_COLORS[status] || { bg: "#F1F5F9", text: "#475569", label: status };
   return <span style={{ background: c.bg, color: c.text, borderRadius: 20, padding: "2px 10px", fontSize: 12, fontWeight: 600 }}>{c.label}</span>;
@@ -109,12 +108,9 @@ function useData(fetchFn) {
   return { data, setData, loading, erro, reload: load };
 }
 
-export default App;
-
-// ── LOGIN — MODELO 3 (fundo escuro) ──────────────────────────────────────────
 const PERFIS = [
-  { tipo: "admin",      label: "Admin",      icon: "🛡️" },
-  { tipo: "psicologo",  label: "Psicólogo",  icon: "🩺" },
+  { tipo: "admin", label: "Admin", icon: "🛡️" },
+  { tipo: "psicologo", label: "Psicólogo", icon: "🩺" },
   { tipo: "estagiario", label: "Estagiário", icon: "🎓" },
 ];
 
@@ -130,124 +126,63 @@ const LoginView = ({ onLogin }) => {
     if (!email || !senha) { setErro("Preencha email e senha."); return; }
     setLoading(true); setErro("");
     try {
-      const res = await api.login(email, senha);
-      if (res.ok) onLogin(res.user);
-      else setErro(res.msg);
-    } catch {
-      setErro("Não foi possível conectar ao servidor. Verifique se o backend está rodando.");
+      const user = await api.login(email, senha);
+      onLogin(user);
+    } catch (e) {
+      setErro(e.message || "Erro ao conectar.");
     } finally { setLoading(false); }
   };
 
   const handleKey = (e) => { if (e.key === "Enter") handleLogin(); };
 
   return (
-    <div style={{
-      minHeight: "100vh", background: "#0F2447",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      padding: 20, position: "relative", overflow: "hidden",
-      fontFamily: "'Inter', system-ui, sans-serif",
-    }}>
-      {/* Decoração de fundo */}
+    <div style={{ minHeight: "100vh", background: "#0F2447", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, position: "relative", overflow: "hidden", fontFamily: "'Inter', system-ui, sans-serif" }}>
       <div style={{ position: "absolute", width: 400, height: 400, borderRadius: "50%", border: "60px solid rgba(255,255,255,.03)", top: -120, right: -100, pointerEvents: "none" }} />
       <div style={{ position: "absolute", width: 260, height: 260, borderRadius: "50%", border: "40px solid rgba(255,255,255,.03)", bottom: -80, left: -60, pointerEvents: "none" }} />
-      <div style={{ position: "absolute", width: 160, height: 160, borderRadius: "50%", border: "25px solid rgba(255,255,255,.03)", top: "40%", left: "15%", pointerEvents: "none" }} />
-
-      <div style={{
-        background: "rgba(255,255,255,.06)",
-        border: "1px solid rgba(255,255,255,.1)",
-        borderRadius: 20, padding: "44px 40px",
-        width: "100%", maxWidth: 400,
-        position: "relative", zIndex: 1,
-      }}>
-        {/* Logo */}
+      <div style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.1)", borderRadius: 20, padding: "44px 40px", width: "100%", maxWidth: 400, position: "relative", zIndex: 1 }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div style={{ width: 52, height: 52, background: "rgba(255,255,255,.1)", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px", fontSize: 26 }}>🧠</div>
           <h1 style={{ color: "#fff", fontSize: 20, fontWeight: 700, margin: 0 }}>Clínica Vida +</h1>
           <p style={{ color: "rgba(255,255,255,.4)", fontSize: 13, margin: "4px 0 0" }}>Sistema de Gestão</p>
         </div>
-
-        {/* Seleção de perfil */}
         <div style={{ marginBottom: 22 }}>
           <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,.4)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 8 }}>Perfil de acesso</label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
             {PERFIS.map(p => (
-              <button key={p.tipo} onClick={() => setPerfilSel(p.tipo)} style={{
-                padding: "10px 6px", borderRadius: 10, cursor: "pointer", textAlign: "center",
-                border: perfilSel === p.tipo ? "1.5px solid rgba(255,255,255,.5)" : "1px solid rgba(255,255,255,.1)",
-                background: perfilSel === p.tipo ? "rgba(255,255,255,.12)" : "rgba(255,255,255,.04)",
-                transition: "all .15s",
-              }}>
+              <button key={p.tipo} onClick={() => setPerfilSel(p.tipo)} style={{ padding: "10px 6px", borderRadius: 10, cursor: "pointer", textAlign: "center", border: perfilSel === p.tipo ? "1.5px solid rgba(255,255,255,.5)" : "1px solid rgba(255,255,255,.1)", background: perfilSel === p.tipo ? "rgba(255,255,255,.12)" : "rgba(255,255,255,.04)" }}>
                 <div style={{ fontSize: 20, marginBottom: 4 }}>{p.icon}</div>
                 <div style={{ fontSize: 11, fontWeight: 600, color: perfilSel === p.tipo ? "#fff" : "rgba(255,255,255,.45)" }}>{p.label}</div>
               </button>
             ))}
           </div>
         </div>
-
-        {/* Erro */}
-        {erro && (
-          <div style={{ background: "rgba(239,68,68,.15)", border: "1px solid rgba(239,68,68,.3)", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#FCA5A5" }}>
-            {erro}
-          </div>
-        )}
-
-        {/* Email */}
+        {erro && <div style={{ background: "rgba(239,68,68,.15)", border: "1px solid rgba(239,68,68,.3)", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 13, color: "#FCA5A5" }}>{erro}</div>}
         <div style={{ marginBottom: 12 }}>
           <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,.4)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6 }}>Email</label>
-          <div style={{ position: "relative" }}>
-            <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 16, color: "rgba(255,255,255,.3)" }}>✉</span>
-            <input
-              type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={handleKey}
-              placeholder="seu@email.com"
-              style={{ width: "100%", padding: "11px 12px 11px 38px", borderRadius: 8, border: "1px solid rgba(255,255,255,.12)", background: "rgba(255,255,255,.07)", fontSize: 14, color: "#fff", outline: "none", boxSizing: "border-box" }}
-            />
-          </div>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={handleKey} placeholder="seu@email.com"
+            style={{ width: "100%", padding: "11px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,.12)", background: "rgba(255,255,255,.07)", fontSize: 14, color: "#fff", outline: "none", boxSizing: "border-box" }} />
         </div>
-
-        {/* Senha */}
-        <div style={{ marginBottom: 22 }}>
+        <div style={{ marginBottom: 22, position: "relative" }}>
           <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,.4)", textTransform: "uppercase", letterSpacing: ".06em", marginBottom: 6 }}>Senha</label>
-          <div style={{ position: "relative" }}>
-            <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 15, color: "rgba(255,255,255,.3)" }}>🔒</span>
-            <input
-              type={showPw ? "text" : "password"} value={senha} onChange={e => setSenha(e.target.value)} onKeyDown={handleKey}
-              placeholder="••••••••"
-              style={{ width: "100%", padding: "11px 40px 11px 38px", borderRadius: 8, border: "1px solid rgba(255,255,255,.12)", background: "rgba(255,255,255,.07)", fontSize: 14, color: "#fff", outline: "none", boxSizing: "border-box" }}
-            />
-            <button onClick={() => setShowPw(!showPw)} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "rgba(255,255,255,.3)", padding: 0 }}>
-              {showPw ? "🙈" : "👁"}
-            </button>
-          </div>
+          <input type={showPw ? "text" : "password"} value={senha} onChange={e => setSenha(e.target.value)} onKeyDown={handleKey} placeholder="••••••••"
+            style={{ width: "100%", padding: "11px 40px 11px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,.12)", background: "rgba(255,255,255,.07)", fontSize: 14, color: "#fff", outline: "none", boxSizing: "border-box" }} />
+          <button onClick={() => setShowPw(!showPw)} style={{ position: "absolute", right: 12, top: 34, background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "rgba(255,255,255,.3)", padding: 0 }}>
+            {showPw ? "🙈" : "👁"}
+          </button>
         </div>
-
-        {/* Botão entrar */}
-        <button onClick={handleLogin} disabled={loading} style={{
-          width: "100%", padding: "13px", borderRadius: 10,
-          border: "1px solid rgba(255,255,255,.2)",
-          background: "rgba(255,255,255,.1)",
-          color: "#fff", fontSize: 15, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-          transition: "background .15s", opacity: loading ? .7 : 1,
-        }}
-          onMouseOver={e => { if (!loading) e.currentTarget.style.background = "rgba(255,255,255,.18)"; }}
-          onMouseOut={e => e.currentTarget.style.background = "rgba(255,255,255,.1)"}
-        >
-          {loading ? "Entrando..." : <>Entrar →</>}
+        <button onClick={handleLogin} disabled={loading} style={{ width: "100%", padding: "13px", borderRadius: 10, border: "1px solid rgba(255,255,255,.2)", background: "rgba(255,255,255,.1)", color: "#fff", fontSize: 15, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, opacity: loading ? .7 : 1 }}>
+          {loading ? "Entrando..." : "Entrar →"}
         </button>
-
-        <p style={{ textAlign: "center", marginTop: 18, fontSize: 12, color: "rgba(255,255,255,.25)" }}>
-          © 2025 PsiClínica · Todos os direitos reservados
-        </p>
+        <p style={{ textAlign: "center", marginTop: 18, fontSize: 12, color: "rgba(255,255,255,.25)" }}>© 2025 Clínica Vida + · Todos os direitos reservados</p>
       </div>
     </div>
   );
 };
 
-// ── DASHBOARD ─────────────────────────────────────────────────────────────────
 const DashboardHome = ({ user }) => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  useEffect(() => { api.dashboard().then(setStats).finally(() => setLoading(false)); }, []);
+  useEffect(() => { api.dashboard().then(setStats).catch(() => {}).finally(() => setLoading(false)); }, []);
   if (loading) return <Spinner />;
   if (!stats) return <Erro msg="Erro ao carregar dashboard" />;
   const StatCard = ({ label, value, emoji, color }) => (
@@ -304,7 +239,6 @@ const DashboardHome = ({ user }) => {
   );
 };
 
-// ── PACIENTES ─────────────────────────────────────────────────────────────────
 const PacientesView = ({ canEdit }) => {
   const { data, loading, erro, reload } = useData(api.listarPacientes);
   const [search, setSearch] = useState("");
@@ -312,11 +246,8 @@ const PacientesView = ({ canEdit }) => {
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
   const filtered = data.filter(p => p.nome.toLowerCase().includes(search.toLowerCase()) || (p.cpf || "").includes(search));
-  const openNovo = () => { setForm({ nome: "", cpf: "", telefone: "", email: "", data_nascimento: "", observacoes: "" }); setModal("novo"); };
-  const openEditar = (p) => { setForm({ ...p }); setModal("edit"); };
   const salvar = async () => {
-    if (!form.nome) return;
-    setSaving(true);
+    if (!form.nome) return; setSaving(true);
     try {
       if (modal === "novo") await api.criarPaciente(form);
       else await api.atualizarPaciente(form.id, form);
@@ -334,7 +265,7 @@ const PacientesView = ({ canEdit }) => {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: theme.text }}>Pacientes <span style={{ fontSize: 14, fontWeight: 400, color: theme.textMuted }}>({data.length})</span></h2>
-        {canEdit && <Btn onClick={openNovo}>+ Novo paciente</Btn>}
+        {canEdit && <Btn onClick={() => { setForm({ nome: "", cpf: "", telefone: "", email: "", data_nascimento: "", observacoes: "" }); setModal("novo"); }}>+ Novo paciente</Btn>}
       </div>
       <Card style={{ marginBottom: 16, padding: "12px 16px" }}>
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍  Buscar por nome ou CPF..."
@@ -352,7 +283,7 @@ const PacientesView = ({ canEdit }) => {
                 <Td muted>{p.criado_em ? new Date(p.criado_em).toLocaleDateString("pt-BR") : "—"}</Td>
                 <td style={{ padding: "12px 14px", borderBottom: `1px solid ${theme.border}` }}>
                   <div style={{ display: "flex", gap: 6 }}>
-                    {canEdit && <Btn small variant="ghost" onClick={() => openEditar(p)}>✏️</Btn>}
+                    {canEdit && <Btn small variant="ghost" onClick={() => { setForm({ ...p }); setModal("edit"); }}>✏️</Btn>}
                     {canEdit && <Btn small variant="danger" onClick={() => excluir(p.id)}>🗑</Btn>}
                   </div>
                 </td>
@@ -386,7 +317,6 @@ const PacientesView = ({ canEdit }) => {
   );
 };
 
-// ── CONSULTAS ─────────────────────────────────────────────────────────────────
 const ConsultasView = ({ canEdit }) => {
   const { data: consultas, loading, erro, reload } = useData(api.listarConsultas);
   const { data: pacientes } = useData(api.listarPacientes);
@@ -397,8 +327,7 @@ const ConsultasView = ({ canEdit }) => {
   const [saving, setSaving] = useState(false);
   const filtered = consultas.filter(c => filterStatus === "todos" || c.status === filterStatus).sort((a, b) => a.data > b.data ? -1 : 1);
   const agendar = async () => {
-    if (!form.paciente_id || !form.psicologo_id || !form.data) return;
-    setSaving(true);
+    if (!form.paciente_id || !form.psicologo_id || !form.data) return; setSaving(true);
     try { await api.criarConsulta(form); await reload(); setModal(false); }
     catch (e) { alert(e.message); } finally { setSaving(false); }
   };
@@ -465,7 +394,6 @@ const ConsultasView = ({ canEdit }) => {
   );
 };
 
-// ── PRONTUÁRIOS ───────────────────────────────────────────────────────────────
 const ProntuariosView = ({ canEdit }) => {
   const { data, loading, erro, reload } = useData(api.listarProntuarios);
   const { data: consultas } = useData(api.listarConsultas);
@@ -473,8 +401,7 @@ const ProntuariosView = ({ canEdit }) => {
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
   const salvar = async () => {
-    if (!form.consulta_id || !form.diagnostico) return;
-    setSaving(true);
+    if (!form.consulta_id || !form.diagnostico) return; setSaving(true);
     try {
       if (form.id) await api.atualizarProntuario(form.id, form);
       else await api.criarProntuario(form);
@@ -506,14 +433,8 @@ const ProntuariosView = ({ canEdit }) => {
                   </div>
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase", marginBottom: 3 }}>Diagnóstico</div>
-                    <div style={{ fontSize: 14, color: theme.text }}>{pr.diagnostico}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase", marginBottom: 3 }}>Prescrição</div>
-                    <div style={{ fontSize: 14, color: theme.text }}>{pr.prescricao || "—"}</div>
-                  </div>
+                  <div><div style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase", marginBottom: 3 }}>Diagnóstico</div><div style={{ fontSize: 14, color: theme.text }}>{pr.diagnostico}</div></div>
+                  <div><div style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, textTransform: "uppercase", marginBottom: 3 }}>Prescrição</div><div style={{ fontSize: 14, color: theme.text }}>{pr.prescricao || "—"}</div></div>
                 </div>
                 {pr.observacoes && <div style={{ marginTop: 8, fontSize: 13, color: theme.textMuted }}>{pr.observacoes}</div>}
               </div>
@@ -543,7 +464,6 @@ const ProntuariosView = ({ canEdit }) => {
   );
 };
 
-// ── PSICÓLOGOS ────────────────────────────────────────────────────────────────
 const PsicologosView = ({ canEdit }) => {
   const { data, loading, erro, reload } = useData(api.listarPsicologos);
   const [modal, setModal] = useState(null);
@@ -597,8 +517,7 @@ const PsicologosView = ({ canEdit }) => {
         <Modal title={form.id ? "Editar psicólogo" : "Novo psicólogo"} onClose={() => setModal(null)}>
           <Input label="Nome completo" required {...f("nome")} />
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <Input label="CRP" {...f("crp")} placeholder="CRP 06/XXXXX" />
-            <Input label="Especialidade" {...f("especialidade")} />
+            <Input label="CRP" {...f("crp")} placeholder="CRP 06/XXXXX" /><Input label="Especialidade" {...f("especialidade")} />
           </div>
           <Input label="Telefone" {...f("telefone")} />
           <Input label="Email" type="email" {...f("email")} />
@@ -612,7 +531,6 @@ const PsicologosView = ({ canEdit }) => {
   );
 };
 
-// ── ESTAGIÁRIOS ───────────────────────────────────────────────────────────────
 const EstagiariosView = ({ canEdit }) => {
   const { data, loading, erro, reload } = useData(api.listarEstagiarios);
   const [modal, setModal] = useState(null);
@@ -691,7 +609,6 @@ const EstagiariosView = ({ canEdit }) => {
   );
 };
 
-// ── USUÁRIOS ──────────────────────────────────────────────────────────────────
 const UsuariosView = () => {
   const { data, loading, erro, reload } = useData(api.listarUsuarios);
   const [modal, setModal] = useState(null);
@@ -770,15 +687,14 @@ const UsuariosView = () => {
   );
 };
 
-// ── SIDEBAR ───────────────────────────────────────────────────────────────────
 const NAV_ITEMS = [
-  { key: "home",        label: "Início",      emoji: "🏠", roles: ["admin","psicologo","estagiario","recepcao"] },
-  { key: "pacientes",   label: "Pacientes",   emoji: "👥", roles: ["admin","psicologo","estagiario","recepcao"] },
-  { key: "consultas",   label: "Consultas",   emoji: "📅", roles: ["admin","psicologo","estagiario","recepcao"] },
+  { key: "home", label: "Início", emoji: "🏠", roles: ["admin","psicologo","estagiario","recepcao"] },
+  { key: "pacientes", label: "Pacientes", emoji: "👥", roles: ["admin","psicologo","estagiario","recepcao"] },
+  { key: "consultas", label: "Consultas", emoji: "📅", roles: ["admin","psicologo","estagiario","recepcao"] },
   { key: "prontuarios", label: "Prontuários", emoji: "📋", roles: ["admin","psicologo"] },
-  { key: "psicologos",  label: "Psicólogos",  emoji: "🩺", roles: ["admin","psicologo","estagiario"] },
+  { key: "psicologos", label: "Psicólogos", emoji: "🩺", roles: ["admin","psicologo","estagiario"] },
   { key: "estagiarios", label: "Estagiários", emoji: "🎓", roles: ["admin"] },
-  { key: "usuarios",    label: "Usuários",    emoji: "🔐", roles: ["admin"] },
+  { key: "usuarios", label: "Usuários", emoji: "🔐", roles: ["admin"] },
 ];
 
 const Sidebar = ({ user, current, onNav, onLogout, collapsed, onToggle }) => (
@@ -820,7 +736,6 @@ const Sidebar = ({ user, current, onNav, onLogout, collapsed, onToggle }) => (
   </div>
 );
 
-// ── APP ───────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState(null);
   const [view, setView] = useState("home");
@@ -831,13 +746,13 @@ export default function App() {
 
   const renderView = () => {
     switch (view) {
-      case "home":        return <DashboardHome user={user} />;
-      case "pacientes":   return <PacientesView canEdit={canEdit} />;
-      case "consultas":   return <ConsultasView canEdit={canEdit} />;
+      case "home": return <DashboardHome user={user} />;
+      case "pacientes": return <PacientesView canEdit={canEdit} />;
+      case "consultas": return <ConsultasView canEdit={canEdit} />;
       case "prontuarios": return <ProntuariosView canEdit={canEdit} />;
-      case "psicologos":  return <PsicologosView canEdit={user?.tipo === "admin"} />;
+      case "psicologos": return <PsicologosView canEdit={user?.tipo === "admin"} />;
       case "estagiarios": return <EstagiariosView canEdit={user?.tipo === "admin"} />;
-      case "usuarios":    return user?.tipo === "admin" ? <UsuariosView /> : <p style={{ color: theme.danger, padding: 20 }}>Acesso negado.</p>;
+      case "usuarios": return user?.tipo === "admin" ? <UsuariosView /> : <p style={{ color: theme.danger, padding: 20 }}>Acesso negado.</p>;
       default: return null;
     }
   };
